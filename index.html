@@ -348,8 +348,7 @@ input[type="file"] {
       }
       e.target.value = "";
     });
-
-    async function handleFiles(files) {
+async function handleFiles(files) {
       if (!files || files.length === 0) return;
 
       for (let file of Array.from(files)) {
@@ -398,7 +397,8 @@ input[type="file"] {
         }
       }
       renderPreviews();
-    }
+}
+    
 
   
   function renderPreviews() {
