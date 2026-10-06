@@ -505,6 +505,16 @@
     }
     }
   });
+    const dropContainer = document.querySelector('.drop-zone') || document.querySelector('[class*="drop"]') || document.querySelector('.upload-box');
+  const hiddenInput = document.querySelector('input[type="file"]');
+
+  if (dropContainer && hiddenInput) {
+    dropContainer.style.cursor = 'pointer';
+    dropContainer.addEventListener('click', () => {
+      hiddenInput.click();
+    });
+  }
+
 </script>
 
 <!-- Adsterra Banner Ad Unit -->
