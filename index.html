@@ -325,75 +325,82 @@ input[type="file"] {
   const fileNameInput = document.getElementById("fileName");
 
   let filesStore = [];
+    dropzone.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      dropzone.classList.add("dragover");
+    });
 
-  dropzone.addEventListener("click", () => fileInput.click());
+    dropzone.addEventListener("dragleave", () => {
+      dropzone.classList.remove("dragover");
+    });
 
-  dropzone.addEventListener("dragover", (e) => {
-    e.preventDefault();
-    dropzone.classList.add("dragover");
-  });
+    dropzone.addEventListener("drop", (e) => {
+      e.preventDefault();
+      dropzone.classList.remove("dragover");
+      if (e.dataTransfer && e.dataTransfer.files) {
+        handleFiles(e.dataTransfer.files);
+      }
+    });
 
-  dropzone.addEventListener("dragleave", () => dropzone.classList.remove("dragover"));
+    fileInput.addEventListener("change", (e) => {
+      if (e.target.files && e.target.files.length > 0) {
+        handleFiles(e.target.files);
+      }
+      e.target.value = "";
+    });
 
-  dropzone.addEventListener("drop", (e) => {
-    e.preventDefault();
-    dropzone.classList.remove("dragover");
-    handleFiles(e.dataTransfer.files);
-  });
+    async function handleFiles(files) {
+      if (!files || files.length === 0) return;
 
-  fileInput.addEventListener("change", (e) => handleFiles(e.target.files));
+      for (let file of Array.from(files)) {
+        const isHeic = file.name.toLowerCase().endsWith(".heic") ||
+                       file.name.toLowerCase().endsWith(".heif") ||
+                       file.type === "image/heic" ||
+                       file.type === "image/heif";
 
-  async function handleFiles(files) {
-    if (!files || files.length === 0) return;
+        if (isHeic) {
+          try {
+            if (typeof heic2any === "function") {
+              const convertedBlob = await heic2any({
+                blob: file,
+                toType: "image/jpeg",
+                quality: 0.8
+              });
+              const normalizedBlob = Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob;
+              const convertedFile = new File([normalizedBlob], file.name.replace(/\.(heic|heif)$/i, ".jpg"), {
+                type: "image/jpeg"
+              });
 
-    for (let file of Array.from(files)) {
-      const isHeic = file.name.toLowerCase().endsWith(".heic") || 
-                     file.name.toLowerCase().endsWith(".heif") || 
-                     file.type === "image/heic" || 
-                     file.type === "image/heif";
-
-      if (isHeic) {
-        try {
-          // Convert HEIC blob to a JPEG blob using heic2any
-          const convertedBlob = await heic2any({
-            blob: file,
-            toType: "image/jpeg",
-            quality: 0.9
-          });
-
-          const normalizedBlob = Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob;
-          const convertedFile = new File([normalizedBlob], file.name.replace(/\.(heic|heif)$/i, ".jpg"), {
-            type: "image/jpeg"
-          });
+              filesStore.push({
+                file: convertedFile,
+                name: file.name,
+                size: convertedFile.size,
+                url: URL.createObjectURL(convertedFile),
+                format: "JPEG"
+              });
+            }
+          } catch (err) {
+            console.error("HEIC conversion failed:", err);
+            alert("Failed to decode HEIC file: " + file.name);
+          }
+        } else {
+          let format = "JPEG";
+          if (file.type === "image/png" || file.name.toLowerCase().endsWith(".png")) format = "PNG";
+          else if (file.type === "image/webp" || file.name.toLowerCase().endsWith(".webp")) format = "WEBP";
 
           filesStore.push({
+            file: file,
             name: file.name,
-            size: convertedFile.size,
-            url: URL.createObjectURL(convertedFile),
-            format: "JPEG"
+            size: file.size,
+            url: URL.createObjectURL(file),
+            format: format
           });
-        } catch (err) {
-          console.error("HEIC conversion failed:", err);
-          alert(`Failed to decode HEIC file: ${file.name}.`);
         }
-      } else {
-        // Standard formats: PNG, JPG, JPEG, WEBP, etc.
-        const ext = file.name.split('.').pop().toLowerCase();
-        let format = "JPEG";
-        if (ext === "png" || file.type === "image/png") format = "PNG";
-        else if (ext === "webp" || file.type === "image/webp") format = "WEBP";
-
-        filesStore.push({
-          name: file.name,
-          size: file.size,
-          url: URL.createObjectURL(file),
-          format: format
-        });
       }
+      renderPreviews();
     }
-    renderPreviews();
-  }
 
+  
   function renderPreviews() {
     previewList.innerHTML = "";
     filesStore.forEach((item, index) => {
