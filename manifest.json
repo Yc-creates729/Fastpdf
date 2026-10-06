@@ -1,1 +1,22 @@
+{
+  "name": "FastPDF Converter",
+  "short_name": "FastPDF",
+  "description": "Convert images to PDF documents quickly and easily",
+  "id": "/Fastpdf/",
+  "start_url": "/Fastpdf/",
+  "scope": "/Fastpdf/",
+  "display": "standalone",
+  "orientation": "any",
+  "dir": "ltr",
+  "background_color": "#121212",
+  "theme_color": "#121212",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/337/337946.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
 
