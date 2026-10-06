@@ -505,16 +505,22 @@
     }
     }
   });
-    const dropContainer = document.querySelector('.drop-zone') || document.querySelector('[class*="drop"]') || document.querySelector('.upload-box');
-  const hiddenInput = document.querySelector('input[type="file"]');
+        const fileInput = document.querySelector('input[type="file"]');
+    
+    document.querySelectorAll('.drop-zone, .upload-box, [id*="drop"], [class*="drop"]').forEach(box => {
+      box.style.cursor = 'pointer';
+      
+      const triggerPicker = (e) => {
+        if (e.target !== fileInput) {
+          e.preventDefault();
+          e.stopPropagation();
+          fileInput.click();
+        }
+      };
 
-  if (dropContainer && hiddenInput) {
-    dropContainer.style.cursor = 'pointer';
-    dropContainer.addEventListener('click', () => {
-      hiddenInput.click();
+      box.addEventListener('click', triggerPicker);
+      box.addEventListener('touchend', triggerPicker);
     });
-  }
-
 </script>
 
 <!-- Adsterra Banner Ad Unit -->
