@@ -348,60 +348,35 @@ input[type="file"] {
       }
       e.target.value = "";
     });
-async function handleFiles(files) {
+      async function handleFiles(files) {
       if (!files || files.length === 0) return;
 
       for (let file of Array.from(files)) {
-        const isHeic = file.name.toLowerCase().endsWith(".heic") ||
-                       file.name.toLowerCase().endsWith(".heif") ||
-                       file.type === "image/heic" ||
-                       file.type === "image/heif";
+        const reader = new FileReader();
 
-        if (isHeic) {
-          try {
-            if (typeof heic2any === "function") {
-              const convertedBlob = await heic2any({
-                blob: file,
-                toType: "image/jpeg",
-                quality: 0.8
-              });
-              const normalizedBlob = Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob;
-              const convertedFile = new File([normalizedBlob], file.name.replace(/\.(heic|heif)$/i, ".jpg"), {
-                type: "image/jpeg"
-              });
-
-              filesStore.push({
-                file: convertedFile,
-                name: file.name,
-                size: convertedFile.size,
-                url: URL.createObjectURL(convertedFile),
-                format: "JPEG"
-              });
-            }
-          } catch (err) {
-            console.error("HEIC conversion failed:", err);
-            alert("Failed to decode HEIC file: " + file.name);
-          }
-        } else {
+        reader.onload = function(e) {
           let format = "JPEG";
-          if (file.type === "image/png" || file.name.toLowerCase().endsWith(".png")) format = "PNG";
-          else if (file.type === "image/webp" || file.name.toLowerCase().endsWith(".webp")) format = "WEBP";
+          if (file.type.includes("png") || file.name.toLowerCase().endsWith(".png")) format = "PNG";
+          else if (file.type.includes("webp") || file.name.toLowerCase().endsWith(".webp")) format = "WEBP";
 
           filesStore.push({
             file: file,
             name: file.name,
             size: file.size,
-            url: URL.createObjectURL(file),
+            url: e.target.result,
             format: format
           });
-        }
-      }
-      renderPreviews();
-}
-    
 
+          renderPreviews();
+        };
+
+        reader.readAsDataURL(file);
+      }
+    }
+
+function renderPreviews()
   
-  function renderPreviews() {
+   {
     previewList.innerHTML = "";
     filesStore.forEach((item, index) => {
       const el = document.createElement("div");
@@ -520,22 +495,7 @@ async function handleFiles(files) {
     }
     }
   });
-        const fileInput = document.querySelector('input[type="file"]');
-    
-    document.querySelectorAll('.drop-zone, .upload-box, [id*="drop"], [class*="drop"]').forEach(box => {
-      box.style.cursor = 'pointer';
-      
-      const triggerPicker = (e) => {
-        if (e.target !== fileInput) {
-          e.preventDefault();
-          e.stopPropagation();
-          fileInput.click();
-        }
-      };
-
-      box.addEventListener('click', triggerPicker);
-      box.addEventListener('touchend', triggerPicker);
-    });
+        
 </script>
 
 <!-- Adsterra Banner Ad Unit -->
