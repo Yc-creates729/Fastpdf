@@ -341,17 +341,19 @@ input[type="file"] {
         handleFiles(e.dataTransfer.files);
       }
     });
-
-    fileInput.addEventListener("change", (e) => {
+     ;
+          fileInput.addEventListener("change", (e) => {
       if (e.target.files && e.target.files.length > 0) {
         handleFiles(e.target.files);
       }
-      e.target.value = "";
     });
-      async function handleFiles(files) {
+
+    async function handleFiles(files) {
       if (!files || files.length === 0) return;
 
-      for (let file of Array.from(files)) {
+      const fileList = Array.from(files);
+
+      for (let file of fileList) {
         const reader = new FileReader();
 
         reader.onload = function(e) {
@@ -367,61 +369,56 @@ input[type="file"] {
             format: format
           });
 
+          // Image read hone ke baad hi render hoga
           renderPreviews();
+        };
+
+        reader.onerror = function() {
+          alert("Failed to read image: " + file.name);
         };
 
         reader.readAsDataURL(file);
       }
+      
+      // Read hone ke baad reset karein taaki same file dubara select ho sake
+      fileInput.value = "";
     }
 
-function renderPreviews()
-  
-   {
-    previewList.innerHTML = "";
-    filesStore.forEach((item, index) => {
-      const el = document.createElement("div");
-      el.className = "preview-item";
-      el.innerHTML = `
-        <img src="${item.url}" alt="${item.name}" />
-        <div class="preview-info">
-          <div class="preview-name">${item.name}</div>
-          <div class="preview-size">${(item.size / 1024).toFixed(1)} KB</div>
-          <span class="status-badge">${item.format}</span>
-        </div>
-        <button class="btn-remove" title="Remove" onclick="removeItem(${index})">&times;</button>
-      `;
-      previewList.appendChild(el);
+    function renderPreviews() {
+      if (!previewList) return;
+      previewList.innerHTML = "";
+
+      filesStore.forEach((item, index) => {
+        const el = document.createElement("div");
+        el.className = "preview-item";
+        el.innerHTML = `
+          <img src="${item.url}" alt="${item.name}" />
+          <div class="preview-info">
+            <div class="preview-name">${item.name}</div>
+            <div class="preview-size">${(item.size / 1024).toFixed(1)} KB</div>
+            <span class="status-badge">${item.format}</span>
+          </div>
+          <button type="button" class="btn-remove" title="Remove" onclick="removeItem(${index})">&times;</button>
+        `;
+        previewList.appendChild(el);
+      });
+
+      const hasFiles = filesStore.length > 0;
+      if (convertBtn) convertBtn.disabled = !hasFiles;
+      if (clearBtn) clearBtn.style.display = hasFiles ? "inline-block" : "none";
+    }
+
+    window.removeItem = function(index) {
+      filesStore.splice(index, 1);
+      renderPreviews();
+    };
+
+    clearBtn.addEventListener("click", () => {
+      filesStore = [];
+      fileInput.value = "";
+      renderPreviews();
     });
 
-    const hasFiles = filesStore.length > 0;
-    convertBtn.disabled = !hasFiles;
-    clearBtn.style.display = hasFiles ? "inline-block" : "none";
-  }
-
-  window.removeItem = function(index) {
-    URL.revokeObjectURL(filesStore[index].url);
-    filesStore.splice(index, 1);
-    renderPreviews();
-  };
-
-  clearBtn.addEventListener("click", () => {
-    filesStore.forEach(item => URL.revokeObjectURL(item.url));
-    filesStore = [];
-    fileInput.value = "";
-    renderPreviews();
-  });
-
-  function loadImage(url) {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.onload = () => resolve(img);
-      img.onerror = (err) => reject(err);
-      img.src = url;
-    });
-  }
-
-  convertBtn.addEventListener("click", async () => {
-    if (filesStore.length === 0) return;
 
     convertBtn.disabled = true;
     convertBtn.textContent = "Processing PDF...";
